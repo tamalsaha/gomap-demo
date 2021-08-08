@@ -18,6 +18,10 @@ func main() {
 	}
 	l := sets.NewUint64(2, 3)
 	fmt.Println(l.Difference(u2["b"]))
+	fmt.Println(u2["b"].Difference(l))
+
+	var m2 map[string]int
+	fmt.Println(m2["a"])
 }
 
 func main_() {

@@ -25,30 +25,30 @@ import (
 	api "github.com/tamalsaha/gomap-demo/pkg/api"
 )
 
-// sets.NamespacedName is a set of api.NamespacedNames, implemented via map[api.NamespacedName]struct{} for minimal memory consumption.
-type NamespacedName map[api.NamespacedName]Empty
+// sets.GroupVersionKind is a set of api.GroupVersionKinds, implemented via map[api.GroupVersionKind]struct{} for minimal memory consumption.
+type GroupVersionKind map[api.GroupVersionKind]Empty
 
-// NewNamespacedName creates a NamespacedName from a list of values.
-func NewNamespacedName(items ...api.NamespacedName) NamespacedName {
-	ss := make(NamespacedName, len(items))
+// NewGroupVersionKind creates a GroupVersionKind from a list of values.
+func NewGroupVersionKind(items ...api.GroupVersionKind) GroupVersionKind {
+	ss := make(GroupVersionKind, len(items))
 	ss.Insert(items...)
 	return ss
 }
 
-// NamespacedNameKeySet creates a NamespacedName from a keys of a map[api.NamespacedName](? extends interface{}).
+// GroupVersionKindKeySet creates a GroupVersionKind from a keys of a map[api.GroupVersionKind](? extends interface{}).
 // If the value passed in is not actually a map, this will panic.
-func NamespacedNameKeySet(theMap interface{}) NamespacedName {
+func GroupVersionKindKeySet(theMap interface{}) GroupVersionKind {
 	v := reflect.ValueOf(theMap)
-	ret := NamespacedName{}
+	ret := GroupVersionKind{}
 
 	for _, keyValue := range v.MapKeys() {
-		ret.Insert(keyValue.Interface().(api.NamespacedName))
+		ret.Insert(keyValue.Interface().(api.GroupVersionKind))
 	}
 	return ret
 }
 
 // Insert adds items to the set.
-func (s NamespacedName) Insert(items ...api.NamespacedName) NamespacedName {
+func (s GroupVersionKind) Insert(items ...api.GroupVersionKind) GroupVersionKind {
 	for _, item := range items {
 		s[item] = Empty{}
 	}
@@ -56,7 +56,7 @@ func (s NamespacedName) Insert(items ...api.NamespacedName) NamespacedName {
 }
 
 // Delete removes all items from the set.
-func (s NamespacedName) Delete(items ...api.NamespacedName) NamespacedName {
+func (s GroupVersionKind) Delete(items ...api.GroupVersionKind) GroupVersionKind {
 	for _, item := range items {
 		delete(s, item)
 	}
@@ -64,13 +64,13 @@ func (s NamespacedName) Delete(items ...api.NamespacedName) NamespacedName {
 }
 
 // Has returns true if and only if item is contained in the set.
-func (s NamespacedName) Has(item api.NamespacedName) bool {
+func (s GroupVersionKind) Has(item api.GroupVersionKind) bool {
 	_, contained := s[item]
 	return contained
 }
 
 // HasAll returns true if and only if all items are contained in the set.
-func (s NamespacedName) HasAll(items ...api.NamespacedName) bool {
+func (s GroupVersionKind) HasAll(items ...api.GroupVersionKind) bool {
 	for _, item := range items {
 		if !s.Has(item) {
 			return false
@@ -80,7 +80,7 @@ func (s NamespacedName) HasAll(items ...api.NamespacedName) bool {
 }
 
 // HasAny returns true if any items are contained in the set.
-func (s NamespacedName) HasAny(items ...api.NamespacedName) bool {
+func (s GroupVersionKind) HasAny(items ...api.GroupVersionKind) bool {
 	for _, item := range items {
 		if s.Has(item) {
 			return true
@@ -95,8 +95,8 @@ func (s NamespacedName) HasAny(items ...api.NamespacedName) bool {
 // s2 = {a1, a2, a4, a5}
 // s1.Difference(s2) = {a3}
 // s2.Difference(s1) = {a4, a5}
-func (s NamespacedName) Difference(s2 NamespacedName) NamespacedName {
-	result := NewNamespacedName()
+func (s GroupVersionKind) Difference(s2 GroupVersionKind) GroupVersionKind {
+	result := NewGroupVersionKind()
 	for key := range s {
 		if !s2.Has(key) {
 			result.Insert(key)
@@ -111,8 +111,8 @@ func (s NamespacedName) Difference(s2 NamespacedName) NamespacedName {
 // s2 = {a3, a4}
 // s1.Union(s2) = {a1, a2, a3, a4}
 // s2.Union(s1) = {a1, a2, a3, a4}
-func (s1 NamespacedName) Union(s2 NamespacedName) NamespacedName {
-	result := NewNamespacedName()
+func (s1 GroupVersionKind) Union(s2 GroupVersionKind) GroupVersionKind {
+	result := NewGroupVersionKind()
 	for key := range s1 {
 		result.Insert(key)
 	}
@@ -127,9 +127,9 @@ func (s1 NamespacedName) Union(s2 NamespacedName) NamespacedName {
 // s1 = {a1, a2}
 // s2 = {a2, a3}
 // s1.Intersection(s2) = {a2}
-func (s1 NamespacedName) Intersection(s2 NamespacedName) NamespacedName {
-	var walk, other NamespacedName
-	result := NewNamespacedName()
+func (s1 GroupVersionKind) Intersection(s2 GroupVersionKind) GroupVersionKind {
+	var walk, other GroupVersionKind
+	result := NewGroupVersionKind()
 	if s1.Len() < s2.Len() {
 		walk = s1
 		other = s2
@@ -146,7 +146,7 @@ func (s1 NamespacedName) Intersection(s2 NamespacedName) NamespacedName {
 }
 
 // IsSuperset returns true if and only if s1 is a superset of s2.
-func (s1 NamespacedName) IsSuperset(s2 NamespacedName) bool {
+func (s1 GroupVersionKind) IsSuperset(s2 GroupVersionKind) bool {
 	for item := range s2 {
 		if !s1.Has(item) {
 			return false
@@ -158,29 +158,29 @@ func (s1 NamespacedName) IsSuperset(s2 NamespacedName) bool {
 // Equal returns true if and only if s1 is equal (as a set) to s2.
 // Two sets are equal if their membership is identical.
 // (In practice, this means same elements, order doesn't matter)
-func (s1 NamespacedName) Equal(s2 NamespacedName) bool {
+func (s1 GroupVersionKind) Equal(s2 GroupVersionKind) bool {
 	return len(s1) == len(s2) && s1.IsSuperset(s2)
 }
 
-type sortableSliceOfNamespacedName []api.NamespacedName
+type sortableSliceOfGroupVersionKind []api.GroupVersionKind
 
-func (s sortableSliceOfNamespacedName) Len() int           { return len(s) }
-func (s sortableSliceOfNamespacedName) Less(i, j int) bool { return lessNamespacedName(s[i], s[j]) }
-func (s sortableSliceOfNamespacedName) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s sortableSliceOfGroupVersionKind) Len() int           { return len(s) }
+func (s sortableSliceOfGroupVersionKind) Less(i, j int) bool { return lessGroupVersionKind(s[i], s[j]) }
+func (s sortableSliceOfGroupVersionKind) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
-// List returns the contents as a sorted api.NamespacedName slice.
-func (s NamespacedName) List() []api.NamespacedName {
-	res := make(sortableSliceOfNamespacedName, 0, len(s))
+// List returns the contents as a sorted api.GroupVersionKind slice.
+func (s GroupVersionKind) List() []api.GroupVersionKind {
+	res := make(sortableSliceOfGroupVersionKind, 0, len(s))
 	for key := range s {
 		res = append(res, key)
 	}
 	sort.Sort(res)
-	return []api.NamespacedName(res)
+	return []api.GroupVersionKind(res)
 }
 
 // UnsortedList returns the slice with contents in random order.
-func (s NamespacedName) UnsortedList() []api.NamespacedName {
-	res := make([]api.NamespacedName, 0, len(s))
+func (s GroupVersionKind) UnsortedList() []api.GroupVersionKind {
+	res := make([]api.GroupVersionKind, 0, len(s))
 	for key := range s {
 		res = append(res, key)
 	}
@@ -188,31 +188,37 @@ func (s NamespacedName) UnsortedList() []api.NamespacedName {
 }
 
 // Returns a single element from the set.
-func (s NamespacedName) PopAny() (api.NamespacedName, bool) {
+func (s GroupVersionKind) PopAny() (api.GroupVersionKind, bool) {
 	for key := range s {
 		s.Delete(key)
 		return key, true
 	}
-	var zeroValue api.NamespacedName
+	var zeroValue api.GroupVersionKind
 	return zeroValue, false
 }
 
 // Len returns the size of the set.
-func (s NamespacedName) Len() int {
+func (s GroupVersionKind) Len() int {
 	return len(s)
 }
 
-func lessNamespacedName(lhs, rhs api.NamespacedName) bool {
-	if lhs.Namespace < rhs.Namespace {
+func lessGroupVersionKind(lhs, rhs api.GroupVersionKind) bool {
+	if lhs.Group < rhs.Group {
 		return true
 	}
-	if lhs.Namespace > rhs.Namespace {
+	if lhs.Group > rhs.Group {
 		return false
 	}
-	if lhs.Name < rhs.Name {
+	if lhs.Version < rhs.Version {
 		return true
 	}
-	if lhs.Name > rhs.Name {
+	if lhs.Version > rhs.Version {
+		return false
+	}
+	if lhs.Kind < rhs.Kind {
+		return true
+	}
+	if lhs.Kind > rhs.Kind {
 		return false
 	}
 	return false

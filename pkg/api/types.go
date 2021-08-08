@@ -15,6 +15,13 @@ type NamespacedName struct {
 }
 
 // +genset=true
+type GroupVersionKind struct {
+	Group   string
+	Version string
+	Kind    string
+}
+
+// +genset=true
 type Matcher struct {
 	Name      string
 	Namespace string
