@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// types.NamespacedName is a set of types.NamespacedNames, implemented via map[types.NamespacedName]struct{} for minimal memory consumption.
+// sets.NamespacedName is a set of types.NamespacedNames, implemented via map[types.NamespacedName]struct{} for minimal memory consumption.
 type NamespacedName map[types.NamespacedName]Empty
 
 // NewNamespacedName creates a NamespacedName from a list of values.

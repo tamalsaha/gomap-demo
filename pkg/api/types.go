@@ -4,6 +4,8 @@ import (
 	"encoding/gob"
 	"github.com/cespare/xxhash"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // +genset=true
@@ -53,4 +55,23 @@ func (m Matcher) Compare(other Matcher) int {
 
 func (m Matcher) Equal(other Matcher) bool {
 	return m.MapIndex() == other.MapIndex()
+}
+
+func (m Matcher) Matches(o client.Object) bool {
+	if m.Namespace != "" && o.GetNamespace() != m.Namespace {
+		return false
+	}
+	if m.Name != "" && o.GetName() != m.Name {
+		return false
+	}
+	// by default select is Empty which means match everything
+	var sel metav1.LabelSelector
+	if m.Selector != nil {
+		sel = *m.Selector
+	}
+	selector, err := metav1.LabelSelectorAsSelector(&sel) // nil means select nothing
+	if err != nil {
+		return false
+	}
+	return selector.Matches(labels.Set(o.GetLabels()))
 }
