@@ -25,30 +25,30 @@ import (
 	api "github.com/tamalsaha/gomap-demo/pkg/api"
 )
 
-// sets.GroupVersionKind is a set of api.GroupVersionKinds, implemented via map[api.GroupVersionKind]struct{} for minimal memory consumption.
-type GroupVersionKind map[api.GroupVersionKind]Empty
+// sets.GroupKind is a set of api.GroupKinds, implemented via map[api.GroupKind]struct{} for minimal memory consumption.
+type GroupKind map[api.GroupKind]Empty
 
-// NewGroupVersionKind creates a GroupVersionKind from a list of values.
-func NewGroupVersionKind(items ...api.GroupVersionKind) GroupVersionKind {
-	ss := make(GroupVersionKind, len(items))
+// NewGroupKind creates a GroupKind from a list of values.
+func NewGroupKind(items ...api.GroupKind) GroupKind {
+	ss := make(GroupKind, len(items))
 	ss.Insert(items...)
 	return ss
 }
 
-// GroupVersionKindKeySet creates a GroupVersionKind from a keys of a map[api.GroupVersionKind](? extends interface{}).
+// GroupKindKeySet creates a GroupKind from a keys of a map[api.GroupKind](? extends interface{}).
 // If the value passed in is not actually a map, this will panic.
-func GroupVersionKindKeySet(theMap interface{}) GroupVersionKind {
+func GroupKindKeySet(theMap interface{}) GroupKind {
 	v := reflect.ValueOf(theMap)
-	ret := GroupVersionKind{}
+	ret := GroupKind{}
 
 	for _, keyValue := range v.MapKeys() {
-		ret.Insert(keyValue.Interface().(api.GroupVersionKind))
+		ret.Insert(keyValue.Interface().(api.GroupKind))
 	}
 	return ret
 }
 
 // Insert adds items to the set.
-func (s GroupVersionKind) Insert(items ...api.GroupVersionKind) GroupVersionKind {
+func (s GroupKind) Insert(items ...api.GroupKind) GroupKind {
 	for _, item := range items {
 		s[item] = Empty{}
 	}
@@ -56,7 +56,7 @@ func (s GroupVersionKind) Insert(items ...api.GroupVersionKind) GroupVersionKind
 }
 
 // Delete removes all items from the set.
-func (s GroupVersionKind) Delete(items ...api.GroupVersionKind) GroupVersionKind {
+func (s GroupKind) Delete(items ...api.GroupKind) GroupKind {
 	for _, item := range items {
 		delete(s, item)
 	}
@@ -64,13 +64,13 @@ func (s GroupVersionKind) Delete(items ...api.GroupVersionKind) GroupVersionKind
 }
 
 // Has returns true if and only if item is contained in the set.
-func (s GroupVersionKind) Has(item api.GroupVersionKind) bool {
+func (s GroupKind) Has(item api.GroupKind) bool {
 	_, contained := s[item]
 	return contained
 }
 
 // HasAll returns true if and only if all items are contained in the set.
-func (s GroupVersionKind) HasAll(items ...api.GroupVersionKind) bool {
+func (s GroupKind) HasAll(items ...api.GroupKind) bool {
 	for _, item := range items {
 		if !s.Has(item) {
 			return false
@@ -80,7 +80,7 @@ func (s GroupVersionKind) HasAll(items ...api.GroupVersionKind) bool {
 }
 
 // HasAny returns true if any items are contained in the set.
-func (s GroupVersionKind) HasAny(items ...api.GroupVersionKind) bool {
+func (s GroupKind) HasAny(items ...api.GroupKind) bool {
 	for _, item := range items {
 		if s.Has(item) {
 			return true
@@ -95,8 +95,8 @@ func (s GroupVersionKind) HasAny(items ...api.GroupVersionKind) bool {
 // s2 = {a1, a2, a4, a5}
 // s1.Difference(s2) = {a3}
 // s2.Difference(s1) = {a4, a5}
-func (s GroupVersionKind) Difference(s2 GroupVersionKind) GroupVersionKind {
-	result := NewGroupVersionKind()
+func (s GroupKind) Difference(s2 GroupKind) GroupKind {
+	result := NewGroupKind()
 	for key := range s {
 		if !s2.Has(key) {
 			result.Insert(key)
@@ -111,8 +111,8 @@ func (s GroupVersionKind) Difference(s2 GroupVersionKind) GroupVersionKind {
 // s2 = {a3, a4}
 // s1.Union(s2) = {a1, a2, a3, a4}
 // s2.Union(s1) = {a1, a2, a3, a4}
-func (s1 GroupVersionKind) Union(s2 GroupVersionKind) GroupVersionKind {
-	result := NewGroupVersionKind()
+func (s1 GroupKind) Union(s2 GroupKind) GroupKind {
+	result := NewGroupKind()
 	for key := range s1 {
 		result.Insert(key)
 	}
@@ -127,9 +127,9 @@ func (s1 GroupVersionKind) Union(s2 GroupVersionKind) GroupVersionKind {
 // s1 = {a1, a2}
 // s2 = {a2, a3}
 // s1.Intersection(s2) = {a2}
-func (s1 GroupVersionKind) Intersection(s2 GroupVersionKind) GroupVersionKind {
-	var walk, other GroupVersionKind
-	result := NewGroupVersionKind()
+func (s1 GroupKind) Intersection(s2 GroupKind) GroupKind {
+	var walk, other GroupKind
+	result := NewGroupKind()
 	if s1.Len() < s2.Len() {
 		walk = s1
 		other = s2
@@ -146,7 +146,7 @@ func (s1 GroupVersionKind) Intersection(s2 GroupVersionKind) GroupVersionKind {
 }
 
 // IsSuperset returns true if and only if s1 is a superset of s2.
-func (s1 GroupVersionKind) IsSuperset(s2 GroupVersionKind) bool {
+func (s1 GroupKind) IsSuperset(s2 GroupKind) bool {
 	for item := range s2 {
 		if !s1.Has(item) {
 			return false
@@ -158,29 +158,29 @@ func (s1 GroupVersionKind) IsSuperset(s2 GroupVersionKind) bool {
 // Equal returns true if and only if s1 is equal (as a set) to s2.
 // Two sets are equal if their membership is identical.
 // (In practice, this means same elements, order doesn't matter)
-func (s1 GroupVersionKind) Equal(s2 GroupVersionKind) bool {
+func (s1 GroupKind) Equal(s2 GroupKind) bool {
 	return len(s1) == len(s2) && s1.IsSuperset(s2)
 }
 
-type sortableSliceOfGroupVersionKind []api.GroupVersionKind
+type sortableSliceOfGroupKind []api.GroupKind
 
-func (s sortableSliceOfGroupVersionKind) Len() int           { return len(s) }
-func (s sortableSliceOfGroupVersionKind) Less(i, j int) bool { return lessGroupVersionKind(s[i], s[j]) }
-func (s sortableSliceOfGroupVersionKind) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s sortableSliceOfGroupKind) Len() int           { return len(s) }
+func (s sortableSliceOfGroupKind) Less(i, j int) bool { return lessGroupKind(s[i], s[j]) }
+func (s sortableSliceOfGroupKind) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
-// List returns the contents as a sorted api.GroupVersionKind slice.
-func (s GroupVersionKind) List() []api.GroupVersionKind {
-	res := make(sortableSliceOfGroupVersionKind, 0, len(s))
+// List returns the contents as a sorted api.GroupKind slice.
+func (s GroupKind) List() []api.GroupKind {
+	res := make(sortableSliceOfGroupKind, 0, len(s))
 	for key := range s {
 		res = append(res, key)
 	}
 	sort.Sort(res)
-	return []api.GroupVersionKind(res)
+	return []api.GroupKind(res)
 }
 
 // UnsortedList returns the slice with contents in random order.
-func (s GroupVersionKind) UnsortedList() []api.GroupVersionKind {
-	res := make([]api.GroupVersionKind, 0, len(s))
+func (s GroupKind) UnsortedList() []api.GroupKind {
+	res := make([]api.GroupKind, 0, len(s))
 	for key := range s {
 		res = append(res, key)
 	}
@@ -188,31 +188,25 @@ func (s GroupVersionKind) UnsortedList() []api.GroupVersionKind {
 }
 
 // Returns a single element from the set.
-func (s GroupVersionKind) PopAny() (api.GroupVersionKind, bool) {
+func (s GroupKind) PopAny() (api.GroupKind, bool) {
 	for key := range s {
 		s.Delete(key)
 		return key, true
 	}
-	var zeroValue api.GroupVersionKind
+	var zeroValue api.GroupKind
 	return zeroValue, false
 }
 
 // Len returns the size of the set.
-func (s GroupVersionKind) Len() int {
+func (s GroupKind) Len() int {
 	return len(s)
 }
 
-func lessGroupVersionKind(lhs, rhs api.GroupVersionKind) bool {
+func lessGroupKind(lhs, rhs api.GroupKind) bool {
 	if lhs.Group < rhs.Group {
 		return true
 	}
 	if lhs.Group > rhs.Group {
-		return false
-	}
-	if lhs.Version < rhs.Version {
-		return true
-	}
-	if lhs.Version > rhs.Version {
 		return false
 	}
 	if lhs.Kind < rhs.Kind {

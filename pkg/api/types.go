@@ -15,9 +15,8 @@ type NamespacedName struct {
 }
 
 // +genset=true
-type GroupVersionKind struct {
+type GroupKind struct {
 	Group   string
-	Version string
 	Kind    string
 }
 
